@@ -7,6 +7,8 @@ import jwt from 'jsonwebtoken';
 const app = express();
 app.use(express.json());
 
+
+//JWT_SECRET=777;
 const jwtSecret = process.env.JWT_SECRET;
 const tokenExpiration = '1h';
 const refreshExpiration = '7d';
