@@ -1,3 +1,5 @@
+import * as dotenv from 'dotenv'
+dotenv.config({ path: './.env' })
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -5,7 +7,7 @@ import jwt from 'jsonwebtoken';
 const app = express();
 app.use(express.json());
 
-const secret = '777';
+const jwtSecret = process.env.JWT_SECRET;
 const tokenExpiration = '1h';
 const refreshExpiration = '7d';
 
@@ -20,7 +22,7 @@ const authenticateJWT = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
     if (!token) return res.sendStatus(401);
 
-    jwt.verify(token, secret, (err, user) => {
+    jwt.verify(token, jwtSecret, (err, user) => {
         if (err) {
             console.error('Ошибка проверки токена:', err);
             return res.sendStatus(403);
@@ -45,7 +47,7 @@ app.post('/login', (req, res) => {
     const match = bcrypt.compareSync(password, user.password);
     if (!match) return res.status(401).send('Неверное имя пользователя или пароль');
 
-    const token = jwt.sign({ id: user.id, role: user.role }, secret, { expiresIn: tokenExpiration });
+    const token = jwt.sign({ id: user.id, role: user.role }, jwtSecret, { expiresIn: tokenExpiration });
     res.json({ token });
 });
 
@@ -83,7 +85,7 @@ app.post('/refresh-token', authenticateJWT, (req, res) => {
     const user = users.find(u => u.id === req.user.id);
     if (!user) return res.status(404).send('Пользователь не найден');
 
-    const newToken = jwt.sign({ id: user.id, role: user.role }, secret, { expiresIn: refreshExpiration });
+    const newToken = jwt.sign({ id: user.id, role: user.role }, jwtSecret, { expiresIn: refreshExpiration });
     res.json({ token: newToken });
 });
 
